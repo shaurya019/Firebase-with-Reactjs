@@ -1,112 +1,69 @@
-// import {getDatabase,ref,set} from "firebase/database"; 
-// import {app} from "./firebase"; 
+import { app } from "./firebase";
 import { useEffect, useState } from "react";
-import {useFirebase} from "./context/Firebase"
-import { getAuth, signInWithPopup, GoogleAuthProvider ,createUserWithEmailAndPassword,signInWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
+import { useFirebase } from "./context/Firebase";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  doc, 
+  getDoc as firestoreGetDoc ,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
 
-// const db = getDatabase(app);
+const store = getFirestore(app);
 
 function App() {
-  const auth = getAuth();
-  const [user,setUser] = useState(null);
+  const writeData = async () => {
+    const res = await addDoc(collection(store, "cities"), {
+      name: "Delhi",
+      pinCode: 1234,
+    });
+    console.log(res);
+  };
 
-  useEffect(()=>{
-    onAuthStateChanged(auth,(user)=>{
-      if(user){
-        console.log(user)
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-    })
-  },[]);
+  const writeDataWithId = async () => {
+    const parentDocRef = doc(store, "cities", "OnKCzfqKmbEejlCBVYqJ");
+    const res = await addDoc(collection(parentDocRef, "places"), {
+      name: "faridabad",
+      pinCode: 121002,
+    });
+    console.log(res);
+  };
 
-  if(user===null){
-    return <h1>No User</h1>
+  const fetchData = async () => {  
+    const ref = doc(store, "cities", "OnKCzfqKmbEejlCBVYqJ");
+    const snap = await firestoreGetDoc(ref);  
+    console.log(snap);
   }
 
-  return <>
-  <h1>Hello User {user.email}</h1>
-  <button onClick={() => signOut(auth)}>LogOut</button></>
-  // const  putdata = () => {
-  //   set(ref(db,"users/shaurya"),{
-  //     id:1,
-  //     name:"Shaurya",
-  //     age:22
-  //   })
-  // }
 
-  // const provider = new GoogleAuthProvider();
+  const fetchDocs = async () => {  
+    const collectionRef = collection(store,'cities');
+    const q = query(collectionRef,where("name","==","Delhi"));
+    const snapShot = await getDocs(q);
+    snapShot.forEach(data => console.log(data.data()));
+  }
 
-  // signInWithPopup(auth, provider)
-  //   .then((result) => {
-  //     alert("Success");
-  //   console.log(result)
-  //   }).catch((error) => {
-  //     alert("Success");
-  //     console.log(error)
-  //   });
-  // const firebase = useFirebase();
-  // console.log('firebase',firebase);
-
-//   Google Sign In
-  // const [email,setEmail] = useState('');
-  // const [password,setPassword] = useState('');
   return (
-    <div className="App">
-      {/* <h1>Firebase Google Sign In</h1> */}
-      {/* <input onChange={(e) => {
-        setEmail(e.target.value)
-      }} value={email} type="email" reuired placeholder="Enter email" /><label>Email</label>
-      <input onChange={
-        (e) => {
-          setPassword(e.target.value)
-        }
-      } value={password} type="password" reuired placeholder="Enter password" /><label>Password</label> */}
-      {/* <button
-      onClick={()=>signInWithPopup(auth,provider)}
-      >
-        Google Sign In
-      </button> */}
-    </div>
+    <>
+      <h1>Firebase Store</h1>
+      <button onClick={writeData}>Click</button>
+      <button onClick={writeDataWithId}>Click Me</button>
+      <button onClick={fetchData}>Click Here</button>
+      <button onClick={fetchDocs}>Fetch Here</button>
+    </>
   );
-
-
-
-// Sign up
-// const [email,setEmail] = useState('');
-// const [password,setPassword] = useState('');
-
-// const auth = getAuth();
-// const createUser = () => {
-//   signInWithEmailAndPassword(auth, email, password)
-// .then((userCredential) => {
-//   alert("Success");
-//   console.log(userCredential);
-// })
-// .catch((error) => {
-//   alert("Error");
-//   console.log(error.value);
-// });
-// }
-// return (
-//   <div className="App">
-//     <h1>Firebase Auth</h1>
-//     <input onChange={(e) => {
-//       setEmail(e.target.value)
-//     }} value={email} type="email" reuired placeholder="Enter email" /><label>Email</label>
-//     <input onChange={
-//       (e) => {
-//         setPassword(e.target.value)
-//       }
-//     } value={password} type="password" reuired placeholder="Enter password" /><label>Password</label>
-//     <button
-//     onClick={createUser}
-//     >
-//       Submit
-//     </button>
-//   </div>
-// );
 }
 
 export default App;
